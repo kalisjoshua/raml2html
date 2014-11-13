@@ -1,0 +1,54 @@
+<article class="indented">
+  {{#if ../allUriParameters}}
+  <h2>URI Parameters</h2>
+  <ul>
+    {{#each ../../allUriParameters}}
+    {{> item}}
+    {{/each}}
+  </ul>
+  {{/if}}
+
+  {{#if headers}}
+  <h2>Headers</h2>
+  <ul>
+    {{#each headers}}
+    {{> item}}
+    {{/each}}
+  </ul>
+  {{/if}}
+
+  {{#if queryParameters}}
+  <h2>Query Parameters</h2>
+  <ul>
+    {{#each queryParameters}}
+    {{> item}}
+    {{/each}}
+  </ul>
+  {{/if}}
+
+  {{#if body}}
+  <h2>Body</h2>
+  {{/if}}
+
+  {{#each body}}
+  <p><strong>Type:</strong> {{@key}}</p>
+  {{#if formParameters}}
+  <strong>Form Parameters</strong>
+  <ul>
+    {{#each formParameters}}
+    {{> item}}
+    {{/each}}
+  </ul>
+  {{/if}}
+
+  {{#if this.schema}}
+  <p><strong>Schema</strong>:</p>
+  <pre><code>{{this.schema}}</code></pre>
+  {{/if}}
+
+  {{#if this.example}}
+  <p><strong>Example</strong>:</p>
+  <pre><code>{{this.example}}</code></pre>
+  {{/if}}
+  {{/each}}
+</article>

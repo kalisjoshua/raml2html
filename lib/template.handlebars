@@ -6,172 +6,280 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="generator" content="https://github.com/kevinrenskers/raml2html {{config.raml2HtmlVersion}}">
 
-    <link rel="stylesheet" href="{{config.protocol}}//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <link href="{{config.protocol}}//cdnjs.cloudflare.com/ajax/libs/normalize/3.0.1/normalize.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="{{config.protocol}}//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/styles/default.min.css">
+
     <script type="text/javascript" src="{{config.protocol}}//code.jquery.com/jquery-1.11.0.min.js"></script>
-    <script type="text/javascript" src="{{config.protocol}}//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="{{config.protocol}}//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/highlight.min.js"></script>
 
     <script type="text/javascript">
-        $(document).ready(function() {
-            $('.page-header pre code, .top-resource-description pre code').each(function(i, block) {
-                hljs.highlightBlock(block);
-            });
+    (function () {
+      var _detail   = '.method__detail--',
+          _endpoint = '.endpoint',
+          _header   = '.endpoint__header',
+          _path     = '.endpoint__path';
 
-            $('[data-toggle]').click(function() {
-                var selector = $(this).data('target') + ' pre code';
-                $(selector).each(function(i, block) {
-                    hljs.highlightBlock(block);
-                });
-            });
-        });
+      function collect(acc, node) {
+        var detail,
+            fn = acc.all || function () {},
+            method;
+
+        method = methodText(node);
+
+        if (!acc[method]) {
+          node = $(node);
+
+          detail = node
+            .closest(_endpoint)
+            .find(_detail + method);
+
+          acc[method] = function () {
+            detail
+              .toggleClass('hide');
+
+            node
+              .toggleClass('open');
+          };
+
+          acc.all = function () {
+            fn();
+            acc[method]();
+          };
+        }
+
+        return acc;
+      }
+
+      function detailToggle() {
+        var endpoint,
+            methods,
+            self = $(this);
+
+        endpoint = self
+          .closest(_endpoint);
+
+        methods = endpoint
+          .data('methods');
+
+        if (!endpoint.data('hljs')) {
+          endpoint
+            .data('hljs', true)
+            .find('pre code')
+            .each(highlight);
+        }
+
+        if (!methods) {
+          methods = endpoint
+            .find(_header + ' .clickable')
+            .not(_path)
+            .toArray()
+            .reduce(collect, {});
+
+          endpoint
+            .data('methods', methods);
+        }
+
+        if (self.hasClass(_path.slice(1))) {
+          // toggle all
+          methods.all();
+        } else {
+          //toggle only the one
+          methods[methodText(this)]();
+        }
+      }
+
+      function highlight(_, block) {
+        hljs.highlightBlock(block);
+      }
+
+      function methodText(element) {
+
+        return element
+          .innerText
+          .replace(/^\s+|\s+$/, '')
+          .toLowerCase();
+      }
+
+      $(document)
+        .on('click', '.endpoint__header .clickable', detailToggle);
+    }());
     </script>
 
     <style>
-        .hljs {
-            background: transparent;
-        }
-        .parent {
-            color: #999;
-        }
-        .list-group-item > .badge {
-            float: none;
-            margin-right: 6px;
-        }
-        .panel-title > .methods {
-            float: right;
-        }
-        .badge {
-            border-radius: 0;
-            text-transform: uppercase;
-            width: 70px;
-            font-weight: normal;
-            color: #f3f3f6;
-            line-height: normal;
-        }
-        .badge_get {
-            background-color: #63a8e2;
-        }
-        .badge_post {
-            background-color: #6cbd7d;
-        }
-        .badge_put {
-            background-color: #22bac4;
-        }
-        .badge_delete {
-            background-color: #d26460;
-        }
-        .list-group, .panel-group {
-            margin-bottom: 0;
-        }
-        .panel-group .panel+.panel-white {
-            margin-top: 0;
-        }
-        .panel-group .panel-white {
-            border-bottom: 1px solid #F5F5F5;
-            border-radius: 0;
-        }
-        .panel-white:last-child {
-            border-bottom-color: white;
-            -webkit-box-shadow: none;
-            box-shadow: none;
-        }
-        .panel-white .panel-heading {
-            background: white;
-        }
-        .tab-pane ul {
-            padding-left: 2em;
-        }
-        .tab-pane h2 {
-            font-size: 1.2em;
-            padding-bottom: 4px;
-            border-bottom: 1px solid #ddd;
-        }
-        .tab-pane h3 {
-            font-size: 1.1em;
-        }
-        .tab-content {
-            border-left: 1px solid #ddd;
-            border-right: 1px solid #ddd;
-            border-bottom: 1px solid #ddd;
-            padding: 10px;
-        }
-        #sidebar {
-            margin-top: 30px;
-        }
-        .top-resource-description {
-            border-bottom: 1px solid #ddd;
-            background: #fcfcfc;
-            padding: 15px 15px 0 15px;
-            margin: -15px -15px 10px -15px;
-        }
-        .resource-description {
-            border-bottom: 1px solid #fcfcfc;
-            background: #fcfcfc;
-            padding: 15px 15px 0 15px;
-            margin: -15px -15px 10px -15px;
-        }
-        .list-group .badge {
-            float: left;
-        }
-        .method_description {
-            margin-left: 85px;
-        }
-        .method_description p:last-child {
-            margin: 0;
-        }
-        .list-group-item {
-            cursor: pointer;
-        }
-        .list-group-item:hover {
-            background-color: #f5f5f5;
-        }
+      a:hover {text-decoration: none;}
+
+      body {
+        color: #444;
+        font-family: Verdana, Arial, sans-serif;
+        margin: 0 auto 80%;
+        padding: 1em;
+        width: 60em;
+      }
+
+      em {
+        text-transform: uppercase;
+      }
+
+      h1 {
+        font-size: 3.0em;
+        line-height: 1em;
+      }
+      h2 { font-size: 1.5em; }
+      h3 { font-size: 1.3em; }
+      h4 { font-size: 1.2em; }
+      h5 { font-size: 1.1em; }
+      h6 { font-size: 1.0em; }
+
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        font-weight: 100;
+      }
+
+      h1 a,
+      h2 a,
+      h3 a,
+      h4 a,
+      h5 a,
+      h6 a {
+        color: navy;
+        text-decoration: none;
+      }
+
+      h1 a:hover,
+      h2 a:hover,
+      h3 a:hover,
+      h4 a:hover,
+      h5 a:hover,
+      h6 a:hover {
+        text-decoration: underline;
+      }
+
+      header {
+        display: flex;
+      }
+
+      header .title {
+        flex-grow: 1;
+        margin: 1em 0 0;
+      }
+
+      header .version {
+        align-self: flex-end;
+        font-variant: small-caps;
+      }
+
+      .clickable {
+        cursor: pointer;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -o-user-select: none;
+        user-select: none;
+      }
+
+      .description {
+        max-width: 70ex;
+      }
+
+      .endpoint {
+        /*simple clearfix*/
+        overflow: auto;
+        zoom: 1;
+      }
+
+      .endpoint + .endpoint {
+        margin-top: 1ex;
+      }
+
+      .endpoint__header {
+        background: #F0F0F0;
+        border-bottom: 1px solid gray;
+        display: flex;
+        margin: 0ex;
+        padding: 1ex;
+      }
+
+      .endpoint__header small {
+        font-size: .6em;
+      }
+
+      .endpoint__parent {
+        color: gray;
+      }
+
+      .endpoint__path {
+        align-self: flex-start;
+        flex-grow: 1;
+      }
+
+      .hide {
+        display: none;
+      }
+
+      .indented {
+        margin-left: 6em;
+      }
+
+      [class*="method--"] {
+        border-bottom: 1ex solid;
+        color: white;
+        display: flex;
+        padding: 1ex 1ex 0;
+      }
+
+      .method--delete  { background: #d14956; border-color: #d14956; }
+      .method--get     { background: #0b88b9; border-color: #0b88b9; }
+      .method--head    { background: #8a45a2; border-color: #8a45a2; }
+      .method--options { background: #1ebd77; border-color: #1ebd77; }
+      .method--patch   { background: #02b0e2; border-color: #02b0e2; }
+      .method--post    { background: #1ea18d; border-color: #1ea18d; }
+      .method--put     { background: #4472d9; border-color: #4472d9; }
+
+      [class*="method--"].open {
+        background: transparent;
+        color: gray;
+      }
+
+      .resource {
+        overflow: auto;
+        zoom: 1;
+      }
+
+      .segmented {
+        display: flex;
+      }
     </style>
 </head>
 
-<body data-spy="scroll" data-target="#sidebar">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-9" role="main">
-                <div class="page-header">
-                    <h1>{{title}} API documentation{{#if version}} <small>version {{version}}</small>{{/if}}</h1>
-                    <p>{{baseUri}}</p>
+<body>
+  <header>
+    <h1 class="title">
+      {{title}}
+      <div><small>API documentation</small></div>
+    </h1>
 
-                    {{#documentation}}
-                        <h3 id="{{uniqueId}}"><a href="#{{uniqueId}}">{{title}}</a></h3>
-                        {{md content}}
-                    {{/documentation}}
-                </div>
+    {{#if version}}
+    <span class="version">version {{version}}</span>
+    {{/if}}
+  </header>
 
-                {{#resources}}
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <h3 id="{{uniqueId}}" class="panel-title">{{#if displayName}}{{displayName}}{{/if}}{{#unless displayName}}{{relativeUri}}{{/unless}}</h3>
-                        </div>
+  <p>{{baseUri}}</p>
 
-                        <div class="panel-body">
-                            {{#if description}}
-                                <div class="top-resource-description">
-                                    {{md description}}
-                                </div>
-                            {{/if}}
+  {{#documentation}}
+  <h3>{{title}}</h3>
+  {{md content}}
+  {{/documentation}}
 
-                            <div class="panel-group">{{> resource}}</div>
-                        </div>
-                    </div>
-                {{/resources}}
-            </div>
+  {{#resources}}
+  <section class="resource">
+    <h2 class="resource__title">{{#if displayName}}{{displayName}}{{/if}}{{#unless displayName}}{{relativeUri}}{{/unless}}</h2>
+    {{> description}}
 
-            <div class="col-md-3">
-                <div id="sidebar" class="hidden-print affix" role="complementary">
-                    <ul class="nav nav-pills nav-stacked">
-                        {{#resources}}
-                            <li><a href="#{{uniqueId}}">{{#if displayName}}{{displayName}}{{/if}}{{#unless displayName}}{{relativeUri}}{{/unless}}</a></li>
-                        {{/resources}}
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{> resource}}
+  </section>
+  {{/resources}}
 </body>
 </html>
